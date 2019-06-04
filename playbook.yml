@@ -1,0 +1,115 @@
+- name: Install OpenStack Newton Packages
+  hosts: all
+  tasks:
+
+    - name: Update Package List
+      yum:
+        name: '*'
+        update_cache: true
+      become: true
+
+    - name: Install openstack-queue With Dependence
+      yum:
+        name: 'centos-release-openstack-queens'
+        state: latest
+      become: true
+
+    - name: Backup SIG Cloud GPG
+      command: cp -f /etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-SIG-Cloud /tmp/
+
+    - name: Remove openstack-queue
+      yum:
+        name: 'centos-release-openstack-queens'
+        state: absent
+      become: true
+
+    - name: Install SIG Cloud GPG
+      command: cp -f /tmp/RPM-GPG-KEY-CentOS-SIG-Cloud /etc/pki/rpm-gpg/
+      become: true
+
+    - name: Add OpenStack Newton Repository
+      yum_repository:
+        name: centos-openstack-newton
+        description: 'CentOS-7 - OpenStack newton'
+        baseurl: 'http://vault.centos.org/centos/7.4.1708/cloud/$basearch/openstack-newton/'
+        gpgcheck: no
+        file: CentOS-OpenStack-newton
+      become: true
+
+    - name: Add OpenStack Newton Test Repository
+      yum_repository:
+        name: centos-openstack-newton-test
+        description: 'CentOS-7 - OpenStack newton Testing'
+        baseurl: 'http://buildlogs.centos.org/centos/7/cloud/$basearch/openstack-newton/'
+        gpgcheck: no
+        enabled: no
+        file: CentOS-OpenStack-newton
+      become: true
+
+    - name: Add OpenStack Newton Debug Repository
+      yum_repository:
+        name: centos-openstack-newton-debuginfo
+        description: 'CentOS-7 - OpenStack newton - Debug'
+        baseurl: 'http://debuginfo.centos.org/centos/7/cloud/$basearch/'
+        gpgcheck: no
+        enabled: no
+        file: CentOS-OpenStack-newton
+      become: true
+
+    - name: Add OpenStack Newton Source Repository
+      yum_repository:
+        name: centos-openstack-newton-source
+        description: 'entOS-7 - OpenStack newton - Source'
+        baseurl: 'http://vault.centos.org/centos/7.4.1708/cloud/Source/openstack-newton/'
+        gpgcheck: no
+        enabled: no
+        file: CentOS-OpenStack-newton
+      become: true
+
+    - name: Add RDO Newton Tested Repository
+      yum_repository:
+        name: rdo-trunk-newton-tested
+        description: 'OpenStack newton Trunk Tested'
+        baseurl: 'http://buildlogs.centos.org/centos/7/cloud/$basearch/rdo-trunk-newton-tested/'
+        gpgcheck: no
+        enabled: no
+        file: CentOS-OpenStack-newton
+      become: true
+
+- name: RedHat PackStack Configuration
+  hosts: all
+  tasks:
+
+    - name: Disable NetworkManager
+      command: systemctl disable NetworkManager
+      become: true
+
+    - name: Stop NetworkManager
+      command: systemctl stop NetworkManager
+      become: true
+
+    - name: Enable Network
+      command: systemctl enable network
+      become: true
+
+    - name: Start Network
+      command: systemctl start network
+      become: true
+
+    - name: Update Package List
+      yum:
+        name: '*'
+        update_cache: true
+      become: true
+
+    - name: Install PackStack
+      yum:
+        name: openstack-packstack
+        state: latest
+      become: true
+
+    - name: Perform AllInOne PackStack
+      command: packstack --allinone
+      become: true
+
+# vim: expandtab ts=2 sw=2:
